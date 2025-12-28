@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="hi">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>पचरा — लाइन बाय लाइन एनिमेशन</title>
+    <style>
+        :root {
+            --bg: #0f1724;
+            --card: #0b1220;
+            --accent: #ffb86b;
+            --muted: #94a3b8;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            font-family: "Noto Sans Devanagari", "Noto Sans", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial;
+            background: linear-gradient(180deg, #071029 0%, #0f1724 60%);
+            color: #e6eef8
+        }
+
+        .wrap {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 28px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+            border-radius: 12px;
+            box-shadow: 0 6px 30px rgba(2, 6, 23, 0.6);
+        }
+
+        h1 {
+            margin: 0 0 12px;
+            font-size: 20px;
+            letter-spacing: 0.4px
+        }
+
+        .stage {
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 28px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.02)
+        }
+
+        .line {
+            font-size: 22px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 240ms ease, transform 240ms ease
+        }
+
+        .line.visible {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 18px
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: var(--accent);
+            cursor: pointer
+        }
+
+        .btn:hover {
+            transform: translateY(-2px)
+        }
+
+        .small {
+            font-size: 13px;
+            color: var(--muted)
+        }
+
+        .progress {
+            width: 240px
+        }
+
+        .speed {
+            width: 120px
+        }
+
+        footer {
+            margin-top: 18px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        @media (max-width:520px) {
+            .line {
+                font-size: 18px
+            }
+
+            .wrap {
+                margin: 18px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap" role="main">
+        <h1>पचरा — लाइन-बाय-लाइन (टाइपिंग एनिमेशन)</h1>
+
+        <div class="stage" aria-live="polite" aria-atomic="true">
+            <div id="output" class="line"></div>
+        </div>
+
+        <div class="controls" role="toolbar" aria-label="Playback controls">
+            <button id="playPause" class="btn">Play</button>
+            <button id="skip" class="btn">Next</button>
+            <label class="small">Speed</label>
+            <input id="speed" class="speed" type="range" min="20" max="200" value="80">
+            <label class="small">Delay</label>
+            <input id="delay" class="progress" type="range" min="200" max="2500" value="800">
+        </div>
+
+        <footer>Tip: आप स्पीड और डिले स्लाइडर बदल कर टाइपिंग और लाइन के बीच का अंतर नियंत्रित कर सकते हैं।</footer>
+    </div>
+
+    <script>
+        // पंक्तियाँ — मैंने वही पंक्तियाँ उपयोग की हैं जो पिछले संवाद में दी गई थीं
+        const lines = [
+            "सेवा में बाग लगाए हो माँ",
+            "हस के उठे माता",
+            "जा चंदन पर ठाड़ भवानी",
+            "नींबू जटा, जटा पर नारियर",
+            "आस पास नारियर के बाड़ी",
+            "केकती केवड़ा सदा न सरवर",
+            "सरवर देखत हंस बिराजे",
+            "हंस म दाई के पहुना साजे",
+            "दाई के संग म भैरव साजे",
+            "भैरव संग लंगुर बिराजे",
+            "सेवा में बाग लगे हो मइया",  
+            "सेवा में बाग लगे हो माँ।" 
+        ];
+
+        const outputEl = document.getElementById('output');
+        const playPauseBtn = document.getElementById('playPause');
+        const skipBtn = document.getElementById('skip');
+        const speedEl = document.getElementById('speed');
+        const delayEl = document.getElementById('delay');
+
+        let idx = 0;
+        let charIndex = 0;
+        let playing = false;
+        let typingTimer = null;
+
+        function resetOutput() {
+            outputEl.textContent = '';
+            outputEl.classList.remove('visible');
+        }
+
+        function typeCurrentLine() {
+            const line = lines[idx] || '';
+            const speed = Number(speedEl.value); // lower => faster
+            if (charIndex === 0) { // prepare
+                outputEl.textContent = '';
+                outputEl.classList.remove('visible');
+            }
+
+            if (charIndex < line.length) {
+                outputEl.textContent += line.charAt(charIndex);
+                charIndex++;
+                // small visual reveal class for fade-on-first-char
+                if (!outputEl.classList.contains('visible')) outputEl.classList.add('visible');
+                typingTimer = setTimeout(typeCurrentLine, speed);
+            } else {
+                // line finished — wait `delay` ms then go to next
+                typingTimer = setTimeout(() => {
+                    idx++;
+                    charIndex = 0;
+                    if (idx < lines.length) {
+                        // clear then start next
+                        outputEl.classList.remove('visible');
+                        // short gap for visual clarity
+                        typingTimer = setTimeout(typeCurrentLine, 140);
+                    } else {
+                        // finished all lines
+                        playing = false;
+                        playPauseBtn.textContent = 'Replay';
+                    }
+                }, Number(delayEl.value));
+            }
+        }
+
+        function play() {
+            if (playing) return;
+            playing = true;
+            playPauseBtn.textContent = 'Pause';
+            // If finished previously, restart
+            if (idx >= lines.length) { idx = 0; charIndex = 0; }
+            typeCurrentLine();
+        }
+
+        function pause() {
+            playing = false;
+            playPauseBtn.textContent = 'Play';
+            if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+        }
+
+        playPauseBtn.addEventListener('click', () => {
+            if (playing) pause(); else play();
+        });
+
+        skipBtn.addEventListener('click', () => {
+            if (typingTimer) { clearTimeout(typingTimer); typingTimer = null; }
+            // move to next line directly
+            idx = Math.min(idx + 1, lines.length);
+            charIndex = 0;
+            if (idx < lines.length) {
+                typeCurrentLine();
+                playing = true;
+                playPauseBtn.textContent = 'Pause';
+            } else {
+                outputEl.textContent = '';
+                outputEl.classList.remove('visible');
+                playing = false; playPauseBtn.textContent = 'Replay';
+            }
+        });
+
+        // keyboard shortcuts: Space play/pause, Right arrow skip
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') { e.preventDefault(); if (playing) pause(); else play(); }
+            if (e.code === 'ArrowRight') { e.preventDefault(); skipBtn.click(); }
+        });
+
+        // start paused — user will hit Play
+        resetOutput();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TechnologyEngineerAll</title>
+    <style>
+        :root {
+            --card-w: 360px;
+            --card-h: 240px;
+            --accent: linear-gradient(135deg, #ff6b6b, #ffd86b);
+            --bg: radial-gradient(circle at 10% 10%, #0f172a 0%, #071124 45%, #02040a 100%);
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Inter, system-ui, sans-serif;
+            background: var(--bg);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .scene {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            gap: 36px;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .card-wrap {
+            perspective: 1400px;
+        }
+
+        .card {
+            width: var(--card-w);
+            height: var(--card-h);
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card .inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s cubic-bezier(.2, .9, .3, 1);
+            box-shadow: 0 18px 40px rgba(2, 6, 23, 0.6);
+            border-radius: 18px;
+        }
+
+        .face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: 18px;
+            overflow: hidden;
+        }
+
+        .front {
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+            transform: rotateY(0deg);
+        }
+
+        .front .title {
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: 1px;
+            font-size: 22px;
+            color: #0b1020;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .front .pattern {
+            position: absolute;
+            inset: 0;
+            opacity: .12;
+            background:
+                radial-gradient(circle at 20% 10%, rgba(255, 255, 255, .35) 1px, transparent 2px),
+                radial-gradient(circle at 80% 60%, rgba(255, 255, 255, .25) 1px, transparent 2px);
+            mix-blend-mode: overlay;
+        }
+
+        .back {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+            transform: rotateY(-160deg) translateZ(0.5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .card.open .inner {
+            transform: rotateY(-160deg);
+        }
+
+        .confetti {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .confetti i {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            opacity: 0;
+            transform: translateY(-10px) scale(.6);
+            animation: popConfetti 900ms ease-out forwards;
+        }
+
+        @keyframes popConfetti {
+            0% { opacity: 0; transform: translateY(-10px) scale(.4); }
+            60% { opacity: 1; transform: translateY(6px) scale(1.05); }
+            100% { opacity: 0; transform: translateY(40px) scale(.8); }
+        }
+
+        .message {
+            position: relative;
+            text-align: center;
+            transform-origin: center;
+            font-weight: 800;
+            letter-spacing: 1px;
+            line-height: 1;
+            opacity: 0;
+            transform: scale(.1) translateY(6px);
+        }
+
+        .message.reveal {
+            animation: growText 900ms cubic-bezier(.2, .9, .25, 1) forwards;
+        }
+
+        @keyframes growText {
+            0% {opacity: 0; transform: scale(.1) translateY(6px);}
+            55% {opacity: 1; transform: scale(1.5) translateY(-6px);}
+            100% {opacity: 1; transform: scale(1) translateY(0);}
+        }
+
+        .message .hb {
+            display: block;
+            font-size: 36px;
+            background: linear-gradient(90deg, #ffcb6b 0%, #ff6b9a 50%, #9b7bff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 6px 14px rgba(155, 43, 255, 0.16));
+            position: relative;
+            z-index: 1;
+        }
+
+        .message .sub {
+            display: block;
+            font-size: 14px;
+            margin-top: 12px;
+            opacity: .9;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        #fireworks {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cake {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .cake img {
+            width: 150px;
+            height: 150px;
+            border-radius: 10px;
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+            animation: cakeGlow 1.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes cakeGlow {
+            from { transform: scale(1); filter: drop-shadow(0 0 15px #ff66cc); }
+            to { transform: scale(1.05); filter: drop-shadow(0 0 30px #ffe066); }
+        }
+
+        .open-text {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #ff00cc, #3333ff, #00ffff, #ff00cc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: glowText 3s linear infinite;
+        }
+
+        @keyframes glowText {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @media (max-width:420px) {
+            :root {
+                --card-w: 320px;
+                --card-h: 220px;
+            }
+            .message .hb {
+                font-size: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scene">
+        <div class="card-wrap">
+            <div class="card" id="card" title="Click to open">
+                <div class="inner">
+                    <div class="face front">
+                        <div>
+                            <div class="cake">
+                                <img src="cake.jpg" alt="Birthday Cake" />
+                            </div>
+                            <div class="title">For You My Dear 🎉</div>
+                            <div style="height:10px"></div>
+                            <div class="open-text">Open Here</div>
+                        </div>
+                        <div class="pattern"></div>
+                    </div>
+
+                    <div class="face back">
+                        <div style="text-align:center; width:100%;">
+                            <div class="message" id="message">
+                                <canvas id="fireworks"></canvas>
+                                <span class="hb">Happy Birthday</span>
+                                <span class="sub">Wishing you joy, cake & amazing memories!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="confetti" id="confetti"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const card = document.getElementById('card');
+        const message = document.getElementById('message');
+        const confettiRoot = document.getElementById('confetti');
+        let opened = false;
+
+        function makeConfetti() {
+            confettiRoot.innerHTML = '';
+            const colors = ['#FF6B6B', '#FFD86B', '#6BF0FF', '#9B7BFF', '#7CFF9B'];
+            const count = 14;
+            for (let i = 0; i < count; i++) {
+                const dot = document.createElement('i');
+                const left = Math.random() * 100;
+                dot.style.left = left + '%';
+                dot.style.top = (10 + Math.random() * 50) + '%';
+                dot.style.background = colors[i % colors.length];
+                dot.style.animationDelay = (Math.random() * 300) + 'ms';
+                confettiRoot.appendChild(dot);
+            }
+        }
+
+        function openCard() {
+            card.classList.add('open');
+            makeConfetti();
+            message.classList.remove('reveal');
+            setTimeout(() => {
+                message.classList.add('reveal');
+            }, 420);
+        }
+
+        function closeCard() {
+            card.classList.remove('open');
+            message.classList.remove('reveal');
+            confettiRoot.innerHTML = '';
+        }
+
+        card.addEventListener('click', () => {
+            opened = !opened;
+            if (opened) openCard(); else closeCard();
+        });
+
+        const fwCanvas = document.getElementById('fireworks');
+        const ctx = fwCanvas.getContext('2d');
+
+        function resizeCanvas() {
+            fwCanvas.width = fwCanvas.clientWidth;
+            fwCanvas.height = fwCanvas.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const particles = [];
+
+        function createFirework() {
+            const x = Math.random() * fwCanvas.width;
+            const y = Math.random() * fwCanvas.height / 2;
+            const color = `hsl(${Math.random() * 360}, 100%, 60%)`;
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x, y,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: 2 + Math.random() * 4,
+                    radius: 2 + Math.random() * 2,
+                    color,
+                    life: 60
+                });
+            }
+        }
+
+        function animateFireworks() {
+            ctx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+            particles.forEach((p, i) => {
+                p.x += Math.cos(p.angle) * p.speed;
+                p.y += Math.sin(p.angle) * p.speed;
+                p.life--;
+                p.speed *= 0.98;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+            requestAnimationFrame(animateFireworks);
+        }
+        animateFireworks();
+
+        const observer = new MutationObserver(() => {
+            if (message.classList.contains('reveal')) {
+                for (let i = 0; i < 6; i++) {
+                    setTimeout(createFirework, i * 500);
+                }
+            }
+        });
+        observer.observe(message, { attributes: true });
+    </script>
+</body>
+</html>
